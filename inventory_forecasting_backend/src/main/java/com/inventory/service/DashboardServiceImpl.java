@@ -43,7 +43,7 @@ public class DashboardServiceImpl implements DashboardService {
     @Transactional
     public Map<String, Object> getDashboardSummary() {
 
-        // generate forecast safely
+        // ✅ generate forecast safely
         generateLiveForecast();
 
         Map<String, Object> summary = new HashMap<>();
@@ -74,13 +74,14 @@ public class DashboardServiceImpl implements DashboardService {
 
         return chartData;
     }
+
     @Override
     public List<Object[]> getLowStockWithDetails() {
         return inventoryRepository.findLowStockWithProductDetails();
     }
 
     // =====================================================
-    // 🔥 LIVE FORECAST ENGINE (FIXED VERSION)
+    // 🔥 LIVE FORECAST ENGINE (FIXED)
     // =====================================================
     private void generateLiveForecast() {
 
@@ -115,11 +116,11 @@ public class DashboardServiceImpl implements DashboardService {
 
             int predictedDemand = (int) Math.ceil(avgDailySales * 7);
 
-            // 3️⃣ SAFE UPSERT (MATCHES TABLE)
+            // ✅ FIXED UPSERT (MATCHES TABLE EXACTLY)
             entityManager.createNativeQuery(
                 "INSERT INTO forecast " +
-                "(product_id, predicted_quantity, forecast_days, rule_applied, created_at) " +
-                "VALUES (?, ?, ?, ?, NOW()) " +
+                "(product_id, predicted_quantity, forecast_days, rule_applied) " +
+                "VALUES (?, ?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE " +
                 "predicted_quantity = VALUES(predicted_quantity), " +
                 "forecast_days = VALUES(forecast_days), " +
@@ -132,6 +133,10 @@ public class DashboardServiceImpl implements DashboardService {
             .executeUpdate();
         }
     }
+
+    // =====================================================
+    // STOCK RISK REPORT
+    // =====================================================
     @Override
     public List<Map<String, Object>> getStockRiskReport() {
 
@@ -152,10 +157,8 @@ public class DashboardServiceImpl implements DashboardService {
             int currentStock = ((Number) row[1]).intValue();
             int totalSold = ((Number) row[2]).intValue();
 
-            // ✅ SAFE AVG DAILY SALES
             double avgDailySales = totalSold / 7.0;
 
-            // ✅ SAFE DAYS LEFT
             double daysLeft;
             if (avgDailySales <= 0) {
                 daysLeft = currentStock > 0 ? 999 : 0;
@@ -163,7 +166,6 @@ public class DashboardServiceImpl implements DashboardService {
                 daysLeft = currentStock / avgDailySales;
             }
 
-            // ✅ RISK LEVEL
             String riskLevel;
             if (currentStock == 0) {
                 riskLevel = "OUT";
@@ -187,5 +189,4 @@ public class DashboardServiceImpl implements DashboardService {
 
         return result;
     }
-
 }

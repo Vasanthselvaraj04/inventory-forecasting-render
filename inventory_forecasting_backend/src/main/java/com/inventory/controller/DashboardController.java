@@ -14,7 +14,7 @@ import com.inventory.service.StockPredictionService;
 
 @RestController
 @RequestMapping("/api/dashboard")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*") // ✅ FIXED: allow Render frontend
 public class DashboardController {
 
     // ---------------- SERVICES ----------------
@@ -66,5 +66,4 @@ public class DashboardController {
     public List<Map<String, Object>> getStockRiskReport() {
         return dashboardService.getStockRiskReport();
     }
-
 }
