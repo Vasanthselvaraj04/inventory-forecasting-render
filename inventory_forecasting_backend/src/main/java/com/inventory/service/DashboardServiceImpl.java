@@ -37,20 +37,25 @@ public class DashboardServiceImpl implements DashboardService {
     private EntityManager entityManager;
 
     // =====================================================
-    // DASHBOARD SUMMARY
+    // DASHBOARD SUMMARY (NULL SAFE)
     // =====================================================
     @Override
     @Transactional
     public Map<String, Object> getDashboardSummary() {
 
-        // ✅ generate forecast safely
         generateLiveForecast();
 
         Map<String, Object> summary = new HashMap<>();
-        summary.put("totalProducts", productRepository.count());
-        summary.put("totalSales", saleRepository.getTotalSalesQuantity());
-        summary.put("lowStockCount", inventoryRepository.countLowStockItems());
-        summary.put("forecastDemand", forecastRepository.getTotalForecastQuantity());
+
+        Long totalProducts = productRepository.count();
+        Long totalSales = saleRepository.getTotalSalesQuantity();
+        Long forecastDemand = forecastRepository.getTotalForecastQuantity();
+        Long lowStockCount = inventoryRepository.countLowStockItems();
+
+        summary.put("totalProducts", totalProducts != null ? totalProducts : 0);
+        summary.put("totalSales", totalSales != null ? totalSales : 0);
+        summary.put("forecastDemand", forecastDemand != null ? forecastDemand : 0);
+        summary.put("lowStockCount", lowStockCount != null ? lowStockCount : 0);
 
         return summary;
     }
@@ -81,11 +86,10 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     // =====================================================
-    // 🔥 LIVE FORECAST ENGINE (FIXED)
+    // LIVE FORECAST ENGINE (SAFE)
     // =====================================================
     private void generateLiveForecast() {
 
-        // 1️⃣ SALES FROM LAST 7 DAYS
         List<Object[]> salesData = entityManager.createNativeQuery(
             "SELECT product_id, SUM(quantity_sold) " +
             "FROM sales " +
@@ -96,12 +100,12 @@ public class DashboardServiceImpl implements DashboardService {
         Map<Integer, Integer> salesMap = new HashMap<>();
 
         for (Object[] row : salesData) {
-            int productId = ((Number) row[0]).intValue();
-            int totalSold = ((Number) row[1]).intValue();
-            salesMap.put(productId, totalSold);
+            salesMap.put(
+                ((Number) row[0]).intValue(),
+                ((Number) row[1]).intValue()
+            );
         }
 
-        // 2️⃣ INVENTORY STOCK
         List<Object[]> inventoryData = entityManager.createNativeQuery(
             "SELECT product_id, current_stock FROM inventory"
         ).getResultList();
@@ -113,14 +117,12 @@ public class DashboardServiceImpl implements DashboardService {
 
             int totalSold = salesMap.getOrDefault(productId, 0);
             double avgDailySales = totalSold / 7.0;
-
             int predictedDemand = (int) Math.ceil(avgDailySales * 7);
 
-            // ✅ FIXED UPSERT (MATCHES TABLE EXACTLY)
             entityManager.createNativeQuery(
                 "INSERT INTO forecast " +
-                "(product_id, predicted_quantity, forecast_days, rule_applied) " +
-                "VALUES (?, ?, ?, ?) " +
+                "(product_id, predicted_quantity, forecast_days, rule_applied, created_at) " +
+                "VALUES (?, ?, ?, ?, NOW()) " +
                 "ON DUPLICATE KEY UPDATE " +
                 "predicted_quantity = VALUES(predicted_quantity), " +
                 "forecast_days = VALUES(forecast_days), " +
@@ -134,15 +136,12 @@ public class DashboardServiceImpl implements DashboardService {
         }
     }
 
-    // =====================================================
-    // STOCK RISK REPORT
-    // =====================================================
     @Override
     public List<Map<String, Object>> getStockRiskReport() {
 
         List<Object[]> data = entityManager.createNativeQuery(
             "SELECT i.product_id, i.current_stock, " +
-            "COALESCE(SUM(s.quantity_sold), 0) AS total_sold " +
+            "COALESCE(SUM(s.quantity_sold), 0) " +
             "FROM inventory i " +
             "LEFT JOIN sales s ON i.product_id = s.product_id " +
             "AND s.sale_date >= CURDATE() - INTERVAL 7 DAY " +
@@ -158,29 +157,17 @@ public class DashboardServiceImpl implements DashboardService {
             int totalSold = ((Number) row[2]).intValue();
 
             double avgDailySales = totalSold / 7.0;
+            double daysLeft = avgDailySales <= 0 ? 999 : currentStock / avgDailySales;
 
-            double daysLeft;
-            if (avgDailySales <= 0) {
-                daysLeft = currentStock > 0 ? 999 : 0;
-            } else {
-                daysLeft = currentStock / avgDailySales;
-            }
-
-            String riskLevel;
-            if (currentStock == 0) {
-                riskLevel = "OUT";
-            } else if (daysLeft <= 3) {
-                riskLevel = "HIGH";
-            } else if (daysLeft <= 7) {
-                riskLevel = "MEDIUM";
-            } else {
-                riskLevel = "LOW";
-            }
+            String riskLevel =
+                currentStock == 0 ? "OUT" :
+                daysLeft <= 3 ? "HIGH" :
+                daysLeft <= 7 ? "MEDIUM" : "LOW";
 
             Map<String, Object> item = new HashMap<>();
             item.put("productId", productId);
             item.put("currentStock", currentStock);
-            item.put("avgDailySales", Math.round(avgDailySales * 100.0) / 100.0);
+            item.put("avgDailySales", avgDailySales);
             item.put("daysLeft", daysLeft == 999 ? "Sufficient" : (int) Math.ceil(daysLeft));
             item.put("riskLevel", riskLevel);
 

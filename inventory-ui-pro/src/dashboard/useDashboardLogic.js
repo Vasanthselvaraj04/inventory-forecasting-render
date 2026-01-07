@@ -11,7 +11,6 @@ import {
   getStockRisk,
 } from "../services/dashboardService";
 
-
 export default function useDashboardLogic() {
   const navigate = useNavigate();
 
@@ -28,6 +27,7 @@ export default function useDashboardLogic() {
   const [stockRisk, setStockRisk] = useState([]);
 
   /* ===================== UI STATE ===================== */
+  const [loading, setLoading] = useState(true); // ✅ ADDED (NO REMOVALS)
   const [activeMenu, setActiveMenu] = useState("Dashboard");
   const [currentPage, setCurrentPage] = useState("Dashboard");
   const [timeFilter, setTimeFilter] = useState("7");
@@ -73,17 +73,18 @@ export default function useDashboardLogic() {
   useEffect(() => {
     const interval = setInterval(() => {
       loadDashboard();
-    }, 15 * 60 * 1000); // 15 minutes
+    }, 15 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, []);
 
   /* ===================== API CALLS ===================== */
   const loadDashboard = async () => {
+    setLoading(true); // ✅ START LOADING
+
     try {
       // ===== SUMMARY =====
       const summaryRes = await getDashboardSummary();
-      console.log("SUMMARY API RESPONSE:", summaryRes);
 
       setSummary({
         totalProducts:
@@ -131,6 +132,8 @@ export default function useDashboardLogic() {
 
     } catch (err) {
       console.error("Dashboard load failed:", err);
+    } finally {
+      setLoading(false); // ✅ STOP LOADING ALWAYS
     }
   };
 
@@ -234,6 +237,7 @@ export default function useDashboardLogic() {
     productFilter,
     setProductFilter,
 
+    loading, // ✅ NEW BUT NON-DESTRUCTIVE
     loadDashboard,
     logout,
     getTrendArrow,
