@@ -1,5 +1,6 @@
 package com.inventory.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.EntityManager;
@@ -72,10 +73,11 @@ public class InventoryServiceImpl implements InventoryService {
                 );
 
         inventory.setCurrentStock(stock);
+        inventory.setLastUpdated(LocalDateTime.now()); // ✅ ADDED
         inventoryRepository.save(inventory);
     }
 
-    // ===================== CSV UPSERT =====================
+    // ===================== CSV UPSERT (PRODUCT + INVENTORY) =====================
     @Override
     @Transactional
     public boolean upsertProductAndStock(
@@ -121,13 +123,22 @@ public class InventoryServiceImpl implements InventoryService {
             inventory.setCurrentStock(stock);
         }
 
+        inventory.setLastUpdated(LocalDateTime.now()); // ✅ ADDED
         inventoryRepository.save(inventory);
 
         return isNewProduct;
     }
+
+    // ===================== CSV IMPORT BY PRODUCT ID =====================
     @Override
     @Transactional
     public int importInventoryByProductId(int productId, int stock) {
+
+        // ✅ VALIDATE PRODUCT EXISTS (CRITICAL FIX)
+        Product product = entityManager.find(Product.class, productId);
+        if (product == null) {
+            return 0; // ❌ Invalid productId
+        }
 
         Inventory inventory =
                 inventoryRepository
@@ -136,15 +147,13 @@ public class InventoryServiceImpl implements InventoryService {
 
         if (inventory == null) {
             inventory = new Inventory();
-            inventory.setProduct(
-                    entityManager.getReference(Product.class, productId)
-            );
+            inventory.setProduct(product);
         }
-        
+
         inventory.setCurrentStock(stock);
+        inventory.setLastUpdated(LocalDateTime.now()); // ✅ ADDED
         inventoryRepository.save(inventory);
 
-        return 1;
+        return 1; // ✅ SUCCESS
     }
-
 }

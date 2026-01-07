@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,7 +17,7 @@ import com.inventory.service.InventoryService;
 
 @RestController
 @RequestMapping("/api/inventory")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*") // ✅ FIXED: works for localhost + Railway
 public class InventoryController {
 
     @Autowired
@@ -44,12 +46,17 @@ public class InventoryController {
 
     // ===================== CSV IMPORT =====================
     @PostMapping("/import")
-    public Map<String, Object> importInventoryCSV(
+    public ResponseEntity<Map<String, Object>> importInventoryCSV(
             @RequestParam("file") MultipartFile file) {
 
         Map<String, Object> result = new HashMap<>();
         int updated = 0;
         int failed = 0;
+
+        if (file == null || file.isEmpty()) {
+            result.put("error", "CSV file is empty");
+            return ResponseEntity.badRequest().body(result);
+        }
 
         try (BufferedReader br =
                 new BufferedReader(new InputStreamReader(file.getInputStream()))) {
@@ -64,30 +71,65 @@ public class InventoryController {
                     continue;
                 }
 
-                String[] data = line.split(",");
-
-                // product_id,current_stock
-                if (data.length < 2) {
-                    failed++;
+                if (line.trim().isEmpty()) {
                     continue;
                 }
 
-                int productId = Integer.parseInt(data[0].trim());
-                int stock = Integer.parseInt(data[1].trim());
+                String[] data = line.split(",");
 
-                inventoryService.importInventoryByProductId(productId, stock);
-                updated++;
+                /*
+                 * SUPPORTED CSV FORMATS:
+                 *
+                 * 1) product_id,current_stock
+                 * 2) inventory_id,product_id,current_stock,last_updated
+                 */
+
+                int productId;
+                int stock;
+
+                try {
+                    if (data.length == 2) {
+                        // product_id,current_stock
+                        productId = Integer.parseInt(data[0].trim());
+                        stock = Integer.parseInt(data[1].trim());
+                    } else if (data.length >= 3) {
+                        // inventory_id,product_id,current_stock,...
+                        productId = Integer.parseInt(data[1].trim());
+                        stock = Integer.parseInt(data[2].trim());
+                    } else {
+                        failed++;
+                        continue;
+                    }
+
+                    int rowsAffected =
+                            inventoryService.importInventoryByProductId(
+                                    productId, stock);
+
+                    if (rowsAffected > 0) {
+                        updated++;
+                    } else {
+                        failed++;
+                    }
+
+                } catch (Exception rowEx) {
+                    failed++;
+                }
             }
 
             result.put("updated", updated);
             result.put("failed", failed);
 
+            return ResponseEntity.ok(result);
+
         } catch (Exception e) {
             result.put("error", e.getMessage());
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(result);
         }
-
-        return result;
     }
+
+    // ===================== UPDATE STOCK (MANUAL) =====================
     @PutMapping("/{productId}")
     public void updateInventoryStock(
             @PathVariable int productId,
@@ -96,5 +138,4 @@ public class InventoryController {
         int stock = body.get("stock");
         inventoryService.updateStock(productId, stock);
     }
-
 }
