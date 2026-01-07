@@ -1,0 +1,105 @@
+/* ================= REPORTS PAGE ================= */
+
+.report-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.report-subtitle {
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* ===== SUMMARY CARDS ===== */
+.report-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.report-summary .summary-card {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.report-summary h3 {
+  font-size: 14px;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.report-summary p {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+/* ===== FILTERS ===== */
+.report-filters {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.report-filters label {
+  font-size: 12px;
+  color: #475569;
+}
+
+.report-filters input {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #cbd5f5;
+}
+
+/* ===== TABLE ===== */
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.report-table th,
+.report-table td {
+  padding: 10px;
+  border: 1px solid #e5e7eb;
+  font-size: 14px;
+}
+
+.report-table th {
+  background: #f8fafc;
+  font-weight: 600;
+}
+
+.report-table tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+/* ===== PRINT MODE ===== */
+@media print {
+  body {
+    background: white;
+  }
+
+  .sidebar,
+  .top-navbar,
+  .report-filters,
+  .export-buttons {
+    display: none !important;
+  }
+
+  .dashboard-container {
+    padding: 0;
+    margin: 0;
+  }
+
+  .report-table th {
+    background: #e5e7eb !important;
+    color: black !important;
+  }
+}

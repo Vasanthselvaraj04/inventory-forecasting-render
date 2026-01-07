@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Inventory Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f6f9;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .container {
+            width: 90%;
+            margin: auto;
+        }
+
+        .box {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>📊 Inventory Dashboard</h2>
+
+<div class="container">
+
+    <!-- CHART -->
+    <div class="box">
+        <canvas id="salesChart"></canvas>
+    </div>
+
+    <!-- LOW STOCK TABLE -->
+    <div class="box">
+        <h3>⚠ Low Stock Items</h3>
+        <table id="lowStockTable">
+            <tr>
+                <th>Inventory ID</th>
+                <th>Product ID</th>
+                <th>Current Stock</th>
+            </tr>
+        </table>
+    </div>
+
+    <!-- RECENT SALES TABLE -->
+    <div class="box">
+        <h3>🛒 Recent Sales</h3>
+        <table id="recentSalesTable">
+            <tr>
+                <th>Sale ID</th>
+                <th>Product ID</th>
+                <th>Quantity</th>
+                <th>Date</th>
+            </tr>
+        </table>
+    </div>
+
+</div>
+
+<script src="dashboard.js"></script>
+</body>
+</html>
