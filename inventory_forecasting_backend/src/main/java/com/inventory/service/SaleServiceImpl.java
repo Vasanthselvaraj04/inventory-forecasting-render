@@ -17,12 +17,17 @@ public class SaleServiceImpl implements SaleService {
     }
 
     @Override
+    public Sale addSale(Sale sale) {
+        return saleRepository.save(sale);
+    }
+
+    @Override
     public List<Sale> getAllSales() {
         return saleRepository.findAll();
     }
 
     @Override
-    public Sale addSale(Sale sale) {
-        return saleRepository.save(sale);
+    public List<Sale> getSalesByProduct(int productId) {
+        return saleRepository.findByProductId(productId);
     }
 }

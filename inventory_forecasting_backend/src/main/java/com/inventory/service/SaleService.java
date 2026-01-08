@@ -1,31 +1,13 @@
 package com.inventory.service;
 
 import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.inventory.entity.Sale;
-import com.inventory.repository.SaleRepository;
 
-@Service
-public class SaleService {
+public interface SaleService {
 
-    @Autowired
-    private SaleRepository saleRepository;
+    Sale addSale(Sale sale);
 
-    // Save sale
-    public Sale saveSale(Sale sale) {
-        return saleRepository.save(sale);
-    }
+    List<Sale> getAllSales();
 
-    // Get all sales
-    public List<Sale> getAllSales() {
-        return saleRepository.findAll();
-    }
-
-    // Get sales by product
-    public List<Sale> getSalesByProduct(int productId) {
-        return saleRepository.findByProductId(productId);
-    }
+    List<Sale> getSalesByProduct(int productId);
 }
