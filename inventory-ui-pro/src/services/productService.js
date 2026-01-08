@@ -6,6 +6,12 @@ export const getAllProducts = async () => {
   return res.data;
 };
 
+/* ===================== ADD PRODUCT ===================== */
+export const addProduct = async (product) => {
+  const res = await API.post("/products", product);
+  return res.data;
+};
+
 /* ===================== CREATE PRODUCT (FORM → DB) ===================== */
 export const createProduct = async (product) => {
   const res = await API.post("/products", product);
