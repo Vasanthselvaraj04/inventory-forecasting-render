@@ -5,29 +5,28 @@ import java.util.List;
 import org.springframework.web.bind.annotation.*;
 
 import com.inventory.entity.Product;
-import com.inventory.repository.ProductRepository;
+import com.inventory.service.ProductService;
 
 @RestController
 @RequestMapping("/api/products")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*")
 public class ProductController {
 
-    private final ProductRepository productRepository;
+    private final ProductService productService;
 
-    public ProductController(ProductRepository productRepository) {
-        this.productRepository = productRepository;
+    public ProductController(ProductService productService) {
+        this.productService = productService;
     }
 
-    /* ===================== GET : ALL PRODUCTS ===================== */
+    /* ===== GET ALL PRODUCTS ===== */
     @GetMapping
     public List<Product> getAllProducts() {
-        return productRepository.findAll();
+        return productService.getAllProducts();
     }
 
-    /* ===================== GET : PRODUCT BY ID ===================== */
-    @GetMapping("/{productId}")
-    public Product getProductById(@PathVariable int productId) {
-        return productRepository.findById(productId)
-                .orElse(null);
+    /* ===== ADD PRODUCT ===== */
+    @PostMapping
+    public Product addProduct(@RequestBody Product product) {
+        return productService.addProduct(product);
     }
 }
