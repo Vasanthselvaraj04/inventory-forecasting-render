@@ -35,13 +35,6 @@ function FiltersBar({
 
       {/* Actions */}
       <div className="action-group">
-        <button
-          className="sidebar-btn"
-          disabled={!isManager}
-          style={{ opacity: isManager ? 1 : 0.5 }}
-        >
-          + Add Sale
-        </button>
 
         <button
   className="sidebar-btn"
