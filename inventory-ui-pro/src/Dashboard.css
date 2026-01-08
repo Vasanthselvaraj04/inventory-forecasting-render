@@ -1083,3 +1083,39 @@ html, body {
     grid-template-columns: 1fr;
   }
 }
+.ui-card {
+  background: #ffffff;
+  padding: 18px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  max-width: 520px;
+}
+
+.ui-card-title {
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.ui-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.ui-btn {
+  width: 100%;
+}
+
+.ui-error {
+  margin-top: 10px;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.ui-success {
+  margin-top: 10px;
+  color: #16a34a;
+  font-weight: 600;
+}

@@ -77,49 +77,44 @@ function ProductsPage() {
       <h1>📦 Products</h1>
 
       {/* ===================== ADD PRODUCT CARD ===================== */}
-      <div
-        style={{
-          background: "#ffffff",
-          padding: "18px",
-          borderRadius: "12px",
-          marginBottom: "24px",
-          boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
-          maxWidth: "420px",
-        }}
-      >
-        <h3>Add Product</h3>
+      <div className="ui-card">
 
-        <input
-          className="input"
-          placeholder="Product Name"
-          value={productName}
-          onChange={(e) => setProductName(e.target.value)}
-        />
+        <h3 className="ui-card-title">Add Product</h3>
 
-        <input
-          className="input"
-          placeholder="Category"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        />
+        <div className="ui-form-grid">
+          <input
+            className="input"
+            placeholder="Product Name"
+            value={productName}
+            onChange={(e) => setProductName(e.target.value)}
+          />
 
-        <input
-          className="input"
-          type="number"
-          placeholder="Unit Price"
-          value={unitPrice}
-          onChange={(e) => setUnitPrice(e.target.value)}
-        />
+          <input
+            className="input"
+            placeholder="Category"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          />
 
-        <button className="sidebar-btn" onClick={handleAddProduct}>
+          <input
+            className="input"
+            type="number"
+            placeholder="Unit Price"
+            value={unitPrice}
+            onChange={(e) => setUnitPrice(e.target.value)}
+          />
+        </div>
+
+        <button
+          className="sidebar-btn ui-btn"
+          onClick={handleAddProduct}
+        >
           Add Product
         </button>
 
-        {error && <div style={{ color: "#dc2626" }}>{error}</div>}
+        {error && <div className="ui-error">{error}</div>}
         {successMessage && (
-          <div style={{ color: "#16a34a", fontWeight: 600 }}>
-            {successMessage}
-          </div>
+          <div className="ui-success">{successMessage}</div>
         )}
       </div>
 

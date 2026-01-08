@@ -77,50 +77,45 @@ function SalesPage() {
       <h1>💰 Sales</h1>
 
       {/* ===================== ADD SALE CARD ===================== */}
-      <div
-        style={{
-          background: "#ffffff",
-          padding: "18px",
-          borderRadius: "12px",
-          marginBottom: "24px",
-          boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
-          maxWidth: "420px",
-        }}
-      >
-        <h3>Add Sale</h3>
+      <div className="ui-card">
 
-        <input
-          className="input"
-          type="number"
-          placeholder="Product ID"
-          value={productId}
-          onChange={(e) => setProductId(e.target.value)}
-        />
+        <h3 className="ui-card-title">Add Sale</h3>
 
-        <input
-          className="input"
-          type="number"
-          placeholder="Quantity Sold"
-          value={quantitySold}
-          onChange={(e) => setQuantitySold(e.target.value)}
-        />
+        <div className="ui-form-grid">
+          <input
+            className="input"
+            type="number"
+            placeholder="Product ID"
+            value={productId}
+            onChange={(e) => setProductId(e.target.value)}
+          />
 
-        <input
-          className="input"
-          type="date"
-          value={saleDate}
-          onChange={(e) => setSaleDate(e.target.value)}
-        />
+          <input
+            className="input"
+            type="number"
+            placeholder="Quantity Sold"
+            value={quantitySold}
+            onChange={(e) => setQuantitySold(e.target.value)}
+          />
 
-        <button className="sidebar-btn" onClick={handleAddSale}>
+          <input
+            className="input"
+            type="date"
+            value={saleDate}
+            onChange={(e) => setSaleDate(e.target.value)}
+          />
+        </div>
+
+        <button
+          className="sidebar-btn ui-btn"
+          onClick={handleAddSale}
+        >
           Add Sale
         </button>
 
-        {error && <div style={{ color: "#dc2626" }}>{error}</div>}
+        {error && <div className="ui-error">{error}</div>}
         {successMessage && (
-          <div style={{ color: "#16a34a", fontWeight: 600 }}>
-            {successMessage}
-          </div>
+          <div className="ui-success">{successMessage}</div>
         )}
       </div>
 
