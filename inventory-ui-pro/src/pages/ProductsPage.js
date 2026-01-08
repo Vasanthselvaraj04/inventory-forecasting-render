@@ -1,17 +1,23 @@
 import React, { useEffect, useState } from "react";
 import "../Dashboard.css";
-import { getAllProducts } from "../services/productService";
+import {
+  getAllProducts,
+  createProduct,
+} from "../services/productService";
 
 function ProductsPage() {
   /* ===================== STATE ===================== */
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [importing, setImporting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
 
-  /* ===================== LOAD PRODUCTS (BACKEND) ===================== */
+  /* ===================== FORM STATE ===================== */
+  const [productName, setProductName] = useState("");
+  const [category, setCategory] = useState("");
+  const [unitPrice, setUnitPrice] = useState("");
+
+  /* ===================== LOAD PRODUCTS ===================== */
   useEffect(() => {
     loadProducts();
   }, []);
@@ -29,61 +35,36 @@ function ProductsPage() {
     }
   };
 
-  /* ===================== FILE SELECT ===================== */
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    setSelectedFile(file || null);
+  /* ===================== ADD PRODUCT ===================== */
+  const handleAddProduct = async () => {
     setError("");
     setSuccessMessage("");
-  };
 
-  /* ===================== FRONTEND CSV IMPORT ===================== */
-  const handleImportCSV = () => {
-    if (!selectedFile) {
-      setError("Please choose a CSV file first");
+    if (!productName || !category || !unitPrice) {
+      setError("All fields are required");
       return;
     }
 
-    setImporting(true);
-    setError("");
-    setSuccessMessage("");
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      const lines = reader.result
-        .split("\n")
-        .map((l) => l.trim())
-        .filter(Boolean);
-
-      // skip header
-      const dataLines = lines.slice(1);
-
-      const importedProducts = dataLines.map((line, index) => {
-        const values = line.split(",");
-
-        return {
-          productId: products.length + index + 1,
-          productName: values[0]?.trim() || "Unknown",
-          category: values[1]?.trim() || "General",
-          unitPrice: values[2]?.trim() || "0",
-        };
+    try {
+      await createProduct({
+        productName,
+        category,
+        unitPrice: Number(unitPrice),
       });
 
-      // ✅ APPEND imported rows
-      setProducts((prev) => [...prev, ...importedProducts]);
+      setSuccessMessage("✅ Product added successfully");
 
-      setImporting(false);
-      setSelectedFile(null);
-      setSuccessMessage("✅ Products imported successfully");
-    };
+      // reset form
+      setProductName("");
+      setCategory("");
+      setUnitPrice("");
 
-    reader.onerror = () => {
-      setImporting(false);
-      setError("Failed to read CSV file");
-    };
-
-    reader.readAsText(selectedFile);
+      // reload from DB
+      loadProducts();
+    } catch (err) {
+      console.error(err);
+      setError("Failed to add product");
+    }
   };
 
   /* ===================== UI ===================== */
@@ -95,7 +76,7 @@ function ProductsPage() {
     <div>
       <h1>📦 Products</h1>
 
-      {/* ===================== IMPORT CARD ===================== */}
+      {/* ===================== ADD PRODUCT CARD ===================== */}
       <div
         style={{
           background: "#ffffff",
@@ -103,49 +84,38 @@ function ProductsPage() {
           borderRadius: "12px",
           marginBottom: "24px",
           boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
-          display: "flex",
-          flexDirection: "column",
-          gap: "14px",
+          maxWidth: "420px",
         }}
       >
-        <div style={{ fontWeight: 600, fontSize: "16px" }}>
-          Import Products (CSV)
-        </div>
+        <h3>Add Product</h3>
 
-        <div
-          style={{
-            display: "flex",
-            gap: "14px",
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          <input
-            type="file"
-            accept=".csv"
-            onChange={handleFileSelect}
-            disabled={importing}
-          />
+        <input
+          className="input"
+          placeholder="Product Name"
+          value={productName}
+          onChange={(e) => setProductName(e.target.value)}
+        />
 
-          <button
-            className="sidebar-btn"
-            onClick={handleImportCSV}
-            disabled={importing}
-            style={{ opacity: importing ? 0.6 : 1 }}
-          >
-            {importing ? "Importing..." : "Import CSV"}
-          </button>
+        <input
+          className="input"
+          placeholder="Category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        />
 
-          {selectedFile && (
-            <span style={{ fontSize: "13px", color: "#475569" }}>
-              📄 {selectedFile.name}
-            </span>
-          )}
-        </div>
+        <input
+          className="input"
+          type="number"
+          placeholder="Unit Price"
+          value={unitPrice}
+          onChange={(e) => setUnitPrice(e.target.value)}
+        />
 
-        {/* ===== MESSAGES ===== */}
+        <button className="sidebar-btn" onClick={handleAddProduct}>
+          Add Product
+        </button>
+
         {error && <div style={{ color: "#dc2626" }}>{error}</div>}
-
         {successMessage && (
           <div style={{ color: "#16a34a", fontWeight: 600 }}>
             {successMessage}
@@ -167,10 +137,7 @@ function ProductsPage() {
         <tbody>
           {products.length === 0 ? (
             <tr>
-              <td
-                colSpan="4"
-                style={{ textAlign: "center", color: "#64748b" }}
-              >
+              <td colSpan="4" style={{ textAlign: "center" }}>
                 No products available
               </td>
             </tr>

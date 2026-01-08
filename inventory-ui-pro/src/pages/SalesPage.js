@@ -1,81 +1,82 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "../Dashboard.css";
+import {
+  getAllSales,
+  createSale,
+} from "../services/salesService";
 
-function SalesPage({ recentSales = [] }) {
+function SalesPage() {
   /* ===================== STATE ===================== */
-  const [sales, setSales] = useState(recentSales);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [importing, setImporting] = useState(false);
+  const [sales, setSales] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  /* ===================== FILE SELECT ===================== */
-  const handleFileSelect = (e) => {
-    const file = e.target.files[0];
-    setSelectedFile(file || null);
-    setError("");
-    setSuccessMessage("");
+  /* ===================== FORM STATE ===================== */
+  const [productId, setProductId] = useState("");
+  const [quantitySold, setQuantitySold] = useState("");
+  const [saleDate, setSaleDate] = useState("");
+
+  /* ===================== LOAD SALES ===================== */
+  useEffect(() => {
+    loadSales();
+  }, []);
+
+  const loadSales = async () => {
+    setLoading(true);
+    try {
+      const data = await getAllSales();
+      setSales(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load sales");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  /* ===================== FRONTEND CSV IMPORT ===================== */
-  const handleImportCSV = () => {
-    if (!selectedFile) {
-      setError("Please choose a CSV file first");
+  /* ===================== ADD SALE ===================== */
+  const handleAddSale = async () => {
+    setError("");
+    setSuccessMessage("");
+
+    if (!productId || !quantitySold || !saleDate) {
+      setError("All fields are required");
       return;
     }
 
-    setImporting(true);
-    setError("");
-    setSuccessMessage("");
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      const lines = reader.result
-        .split("\n")
-        .map((l) => l.trim())
-        .filter(Boolean);
-
-      // skip header
-      const dataLines = lines.slice(1);
-
-      const importedSales = dataLines.map((line, index) => {
-        const values = line.split(",");
-
-        return {
-          saleId: sales.length + index + 1, // frontend-only
-          productId: values[0]?.trim() || "N/A",
-          quantitySold: values[1]?.trim() || "0",
-          saleDate: values[2]?.trim() || "N/A",
-        };
+    try {
+      await createSale({
+        productId: Number(productId),
+        quantitySold: Number(quantitySold),
+        saleDate,
       });
 
-      // ✅ append imported sales
-      setSales((prev) => [...prev, ...importedSales]);
+      setSuccessMessage("✅ Sale recorded successfully");
 
-      setImporting(false);
-      setSelectedFile(null);
-      setSuccessMessage("✅ Sales imported successfully");
-    };
+      // reset form
+      setProductId("");
+      setQuantitySold("");
+      setSaleDate("");
 
-    reader.onerror = () => {
-      setImporting(false);
-      setError("Failed to read CSV file");
-    };
-
-    reader.readAsText(selectedFile);
+      // reload from DB
+      loadSales();
+    } catch (err) {
+      console.error(err);
+      setError("Failed to record sale");
+    }
   };
 
   /* ===================== UI ===================== */
+  if (loading) {
+    return <h2 style={{ padding: "20px" }}>Loading sales...</h2>;
+  }
+
   return (
     <div>
       <h1>💰 Sales</h1>
 
-      <p style={{ marginBottom: "16px", color: "#64748b" }}>
-        Recent sales transactions.
-      </p>
-
-      {/* ===================== IMPORT CARD ===================== */}
+      {/* ===================== ADD SALE CARD ===================== */}
       <div
         style={{
           background: "#ffffff",
@@ -83,49 +84,39 @@ function SalesPage({ recentSales = [] }) {
           borderRadius: "12px",
           marginBottom: "24px",
           boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
-          display: "flex",
-          flexDirection: "column",
-          gap: "14px",
+          maxWidth: "420px",
         }}
       >
-        <div style={{ fontWeight: 600, fontSize: "16px" }}>
-          Import Sales (CSV)
-        </div>
+        <h3>Add Sale</h3>
 
-        <div
-          style={{
-            display: "flex",
-            gap: "14px",
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          <input
-            type="file"
-            accept=".csv"
-            onChange={handleFileSelect}
-            disabled={importing}
-          />
+        <input
+          className="input"
+          type="number"
+          placeholder="Product ID"
+          value={productId}
+          onChange={(e) => setProductId(e.target.value)}
+        />
 
-          <button
-            className="sidebar-btn"
-            onClick={handleImportCSV}
-            disabled={importing}
-            style={{ opacity: importing ? 0.6 : 1 }}
-          >
-            {importing ? "Importing..." : "Import CSV"}
-          </button>
+        <input
+          className="input"
+          type="number"
+          placeholder="Quantity Sold"
+          value={quantitySold}
+          onChange={(e) => setQuantitySold(e.target.value)}
+        />
 
-          {selectedFile && (
-            <span style={{ fontSize: "13px", color: "#475569" }}>
-              📄 {selectedFile.name}
-            </span>
-          )}
-        </div>
+        <input
+          className="input"
+          type="date"
+          value={saleDate}
+          onChange={(e) => setSaleDate(e.target.value)}
+        />
 
-        {/* ===== MESSAGES ===== */}
+        <button className="sidebar-btn" onClick={handleAddSale}>
+          Add Sale
+        </button>
+
         {error && <div style={{ color: "#dc2626" }}>{error}</div>}
-
         {successMessage && (
           <div style={{ color: "#16a34a", fontWeight: 600 }}>
             {successMessage}
@@ -147,12 +138,12 @@ function SalesPage({ recentSales = [] }) {
             </tr>
           </thead>
           <tbody>
-            {sales.map((sale) => (
-              <tr key={sale.saleId}>
-                <td>{sale.saleId}</td>
-                <td>{sale.productId}</td>
-                <td>{sale.quantitySold}</td>
-                <td>{sale.saleDate}</td>
+            {sales.map((s) => (
+              <tr key={s.saleId}>
+                <td>{s.saleId}</td>
+                <td>{s.productId}</td>
+                <td>{s.quantitySold}</td>
+                <td>{s.saleDate}</td>
               </tr>
             ))}
           </tbody>
