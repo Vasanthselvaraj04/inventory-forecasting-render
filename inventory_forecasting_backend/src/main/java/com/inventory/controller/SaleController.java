@@ -18,15 +18,21 @@ public class SaleController {
         this.saleService = saleService;
     }
 
-    /* ===== GET ALL SALES ===== */
+    // GET ALL SALES
     @GetMapping
     public List<Sale> getAllSales() {
         return saleService.getAllSales();
     }
 
-    /* ===== ADD SALE ===== */
+    // ADD SALE
     @PostMapping
     public Sale addSale(@RequestBody Sale sale) {
         return saleService.addSale(sale);
+    }
+
+    // GET SALES BY PRODUCT
+    @GetMapping("/product/{productId}")
+    public List<Sale> getSalesByProduct(@PathVariable int productId) {
+        return saleService.getSalesByProduct(productId);
     }
 }
