@@ -37,7 +37,7 @@ public class DashboardServiceImpl implements DashboardService {
     private EntityManager entityManager;
 
     // =====================================================
-    // DASHBOARD SUMMARY (NULL SAFE)
+    // DASHBOARD SUMMARY (SAFE)
     // =====================================================
     @Override
     @Transactional
@@ -86,7 +86,7 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     // =====================================================
-    // LIVE FORECAST ENGINE (SAFE)
+    // 🔥 LIVE FORECAST ENGINE (FIXED)
     // =====================================================
     private void generateLiveForecast() {
 
@@ -121,8 +121,8 @@ public class DashboardServiceImpl implements DashboardService {
 
             entityManager.createNativeQuery(
                 "INSERT INTO forecast " +
-                "(product_id, predicted_quantity, forecast_days, rule_applied, created_at) " +
-                "VALUES (?, ?, ?, ?, NOW()) " +
+                "(product_id, predicted_quantity, forecast_days, rule_applied) " +
+                "VALUES (?, ?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE " +
                 "predicted_quantity = VALUES(predicted_quantity), " +
                 "forecast_days = VALUES(forecast_days), " +
