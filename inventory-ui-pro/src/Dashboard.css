@@ -1119,3 +1119,28 @@ html, body {
   color: #16a34a;
   font-weight: 600;
 }
+/* ===== PRODUCTS & SALES INLINE FORM FIX ===== */
+
+.add-product-card,
+.add-sale-card {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr auto;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+}
+
+/* Inputs should NOT stretch full row */
+.add-product-card .input,
+.add-sale-card .input {
+  width: 100%;
+  margin: 0;
+}
+
+/* Button aligned inline */
+.add-product-card .sidebar-btn,
+.add-sale-card .sidebar-btn {
+  height: 42px;
+  padding: 0 22px;
+  white-space: nowrap;
+}
