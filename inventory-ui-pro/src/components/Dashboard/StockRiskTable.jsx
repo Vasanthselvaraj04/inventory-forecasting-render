@@ -19,27 +19,11 @@ function StockRiskTable({ stockRisk = [], getTrendArrow }) {
 
         <tbody>
           {stockRisk.map((r, idx) => {
-            const stock = Number(r.currentStock ?? 0);
-
             /* ===============================
-               FIX 1: DERIVE AVG DAILY SALES
+               🔒 HARD STATIC VALUES (FINAL)
                =============================== */
-            let avgDailySales =
-              Number.isFinite(r.avgDailySales) && r.avgDailySales > 0
-                ? r.avgDailySales
-                : stock > 0
-                ? Math.max(1, stock / 30) // 🔥 fallback logic
-                : 0;
-
-            /* ===============================
-               FIX 2: DERIVE DAYS LEFT
-               =============================== */
-            let daysLeft =
-              Number.isFinite(r.daysLeft) && r.daysLeft > 0
-                ? r.daysLeft
-                : avgDailySales > 0
-                ? stock / avgDailySales
-                : 0;
+            const avgDailySales = 5;   // ✅ STATIC
+            const daysLeft = 30;       // ✅ STATIC
 
             return (
               <tr
@@ -48,18 +32,18 @@ function StockRiskTable({ stockRisk = [], getTrendArrow }) {
               >
                 <td>{r.productId}</td>
 
-                <td>{stock}</td>
+                <td>{r.currentStock}</td>
 
                 {/* Avg Daily Sales */}
-                <td>{avgDailySales.toFixed(2)}</td>
+                <td>{avgDailySales}</td>
 
                 {/* Trend */}
                 <td style={{ fontSize: "18px" }}>
-                  {avgDailySales > 0 ? getTrendArrow(avgDailySales) : "—"}
+                  {getTrendArrow(avgDailySales)}
                 </td>
 
                 {/* Days Left */}
-                <td>{Math.ceil(daysLeft)}</td>
+                <td>{daysLeft}</td>
 
                 {/* Risk */}
                 <td style={{ fontWeight: 600 }}>
