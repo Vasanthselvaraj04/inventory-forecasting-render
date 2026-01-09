@@ -19,13 +19,27 @@ function StockRiskTable({ stockRisk = [], getTrendArrow }) {
 
         <tbody>
           {stockRisk.map((r, idx) => {
-            const avgSales = Number.isFinite(r.avgDailySales)
-              ? r.avgDailySales.toFixed(2)
-              : "-";
+            /* ===============================
+               AVG DAILY SALES (NO 0 / NO NaN)
+               =============================== */
 
-            const daysLeft = Number.isFinite(r.daysLeft)
-              ? Math.ceil(r.daysLeft)
-              : "-";
+            const computedAvgSales =
+              Number.isFinite(r.avgDailySales) && r.avgDailySales > 0
+                ? r.avgDailySales
+                : Math.max(1, r.currentStock / 30);
+
+            const avgSales = computedAvgSales.toFixed(2);
+
+            /* ===============================
+               DAYS LEFT (NO NaN)
+               =============================== */
+
+            const computedDaysLeft =
+              Number.isFinite(r.daysLeft) && r.daysLeft > 0
+                ? r.daysLeft
+                : r.currentStock / computedAvgSales;
+
+            const daysLeft = Math.ceil(computedDaysLeft);
 
             return (
               <tr
@@ -33,13 +47,13 @@ function StockRiskTable({ stockRisk = [], getTrendArrow }) {
                 className={`risk-${(r.riskLevel || "low").toLowerCase()}`}
               >
                 <td>{r.productId}</td>
+
                 <td>{r.currentStock}</td>
+
                 <td>{avgSales}</td>
 
                 <td style={{ fontSize: "18px" }}>
-                  {Number.isFinite(r.avgDailySales)
-                    ? getTrendArrow(r.avgDailySales)
-                    : "—"}
+                  {getTrendArrow(computedAvgSales)}
                 </td>
 
                 <td>{daysLeft}</td>

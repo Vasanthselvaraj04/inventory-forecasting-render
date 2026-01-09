@@ -246,7 +246,7 @@ function InventoryPage({ isManager = true }) {
           </td>
           {isManager && (
             <td>
-              <button className="edit-btn">Edit</button>
+              <button className="edit-btn">View</button>
             </td>
           )}
         </tr>
