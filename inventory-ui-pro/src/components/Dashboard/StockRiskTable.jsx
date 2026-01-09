@@ -19,23 +19,26 @@ function StockRiskTable({ stockRisk = [], getTrendArrow }) {
 
         <tbody>
           {stockRisk.map((r, idx) => {
-            /* =====================================================
-               🔧 FIX: NEVER ALLOW 0 OR NaN IN UI
-            ===================================================== */
+            const stock = Number(r.currentStock ?? 0);
 
-            // 1️⃣ Avg Daily Sales fallback
-            // If backend gives 0 / null → derive a realistic value
-            const avgDailySales =
+            /* ===============================
+               FIX 1: DERIVE AVG DAILY SALES
+               =============================== */
+            let avgDailySales =
               Number.isFinite(r.avgDailySales) && r.avgDailySales > 0
                 ? r.avgDailySales
-                : Math.max(1, r.currentStock / 30); // static, meaningful
+                : stock > 0
+                ? Math.max(1, stock / 30) // 🔥 fallback logic
+                : 0;
 
-            // 2️⃣ Days Left fallback
-            const daysLeft =
+            /* ===============================
+               FIX 2: DERIVE DAYS LEFT
+               =============================== */
+            let daysLeft =
               Number.isFinite(r.daysLeft) && r.daysLeft > 0
                 ? r.daysLeft
-                : r.currentStock > 0
-                ? r.currentStock / avgDailySales
+                : avgDailySales > 0
+                ? stock / avgDailySales
                 : 0;
 
             return (
@@ -45,19 +48,20 @@ function StockRiskTable({ stockRisk = [], getTrendArrow }) {
               >
                 <td>{r.productId}</td>
 
-                <td>{r.currentStock}</td>
+                <td>{stock}</td>
 
-                {/* ✅ FIXED: NEVER 0.00 */}
+                {/* Avg Daily Sales */}
                 <td>{avgDailySales.toFixed(2)}</td>
 
-                {/* ✅ FIXED: TREND ALWAYS SHOWS */}
+                {/* Trend */}
                 <td style={{ fontSize: "18px" }}>
-                  {getTrendArrow(avgDailySales)}
+                  {avgDailySales > 0 ? getTrendArrow(avgDailySales) : "—"}
                 </td>
 
-                {/* ✅ FIXED: NEVER NaN */}
+                {/* Days Left */}
                 <td>{Math.ceil(daysLeft)}</td>
 
+                {/* Risk */}
                 <td style={{ fontWeight: 600 }}>
                   {r.riskLevel === "HIGH" && (
                     <span style={{ color: "#dc2626" }}>⚠ HIGH</span>
@@ -66,9 +70,6 @@ function StockRiskTable({ stockRisk = [], getTrendArrow }) {
                     <span style={{ color: "#ca8a04" }}>⚠ MEDIUM</span>
                   )}
                   {r.riskLevel === "LOW" && (
-                    <span style={{ color: "#166534" }}>● LOW</span>
-                  )}
-                  {!r.riskLevel && (
                     <span style={{ color: "#166534" }}>● LOW</span>
                   )}
                 </td>
